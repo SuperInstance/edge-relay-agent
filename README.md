@@ -247,6 +247,23 @@ and 3.12.
 - There are no environment-variable secrets, no network credentials, and no
   hardcoded keys anywhere in the codebase.
 
+## Related repos
+
+This is one agent in the SuperInstance / Cocapn "fleet" (shared Git-Agent / I2I
+conventions — see `CHARTER.md`). Siblings with a real conceptual overlap:
+
+- **[nexus-edge-runtime](https://github.com/SuperInstance/nexus-edge-runtime)**
+  — a Python edge bytecode runtime; its cloud↔edge message flow and trust
+  model are the kind of workload this relay compresses and routes.
+- **[Edge-Native](https://github.com/SuperInstance/Edge-Native)** — the ESP32 /
+  Jetson firmware layer this relay's edge nodes represent on real hardware.
+- **[edge-equipment-catalog](https://github.com/SuperInstance/edge-equipment-catalog)**
+  — hardware profiles this relay's edge-node constraints (`vram`, `watts`)
+  map onto when validating where an agent can deploy.
+- **[fleet-conductor](https://github.com/SuperInstance/fleet-conductor)** —
+  sibling fleet agent; orchestrates agent state FSMs, complementary to this
+  relay's message-routing role.
+
 ## License
 
 MIT — see `LICENSE`.
