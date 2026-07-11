@@ -15,6 +15,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install pyyaml pytest
+      - run: pip install pyyaml pytest pytest-timeout
       - run: python -m pytest tests/ -v --timeout=60
     timeout-minutes: 10
