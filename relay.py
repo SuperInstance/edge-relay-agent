@@ -131,6 +131,7 @@ class CloudSource:
     """A registered cloud data source."""
     source_id: str
     capabilities: List[str]
+    url: str = ""
     registered_at: float = field(default_factory=time.time)
 
     def to_dict(self) -> dict:
@@ -138,6 +139,7 @@ class CloudSource:
         return {
             "source_id": self.source_id,
             "capabilities": self.capabilities,
+            "url": self.url,
             "registered_at": self.registered_at,
         }
 
@@ -147,6 +149,7 @@ class CloudSource:
         return cls(
             source_id=data["source_id"],
             capabilities=data.get("capabilities", []),
+            url=data.get("url", ""),
             registered_at=data.get("registered_at", time.time()),
         )
 
@@ -316,17 +319,19 @@ class ResearchRelay:
     # ── Registration ──────────────────────────────────────────────────────
 
     def register_cloud_source(self, source_id: str,
-                              capabilities: List[str]) -> CloudSource:
+                              capabilities: List[str],
+                              url: str = "") -> CloudSource:
         """Register a cloud data source.
 
         Args:
             source_id: Unique identifier for the cloud source.
             capabilities: List of capability strings this source provides.
+            url: Optional URL endpoint for this cloud source.
 
         Returns:
             The registered CloudSource instance.
         """
-        source = CloudSource(source_id=source_id, capabilities=capabilities)
+        source = CloudSource(source_id=source_id, capabilities=capabilities, url=url)
         self.cloud_sources[source_id] = source
         return source
 
