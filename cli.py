@@ -160,7 +160,7 @@ def cmd_register_cloud(args: argparse.Namespace) -> int:
         relay.cloud_sources[sid] = relay.cloud_sources.get(sid) or __import__(
             "relay", fromlist=["CloudSource"]).CloudSource.from_dict(sd)
 
-    source = relay.register_cloud_source(name, capabilities)
+    source = relay.register_cloud_source(name, capabilities, url=url)
 
     # Save updated state
     state["relay"] = relay.to_dict()
@@ -169,7 +169,7 @@ def cmd_register_cloud(args: argparse.Namespace) -> int:
     result = {
         "status": "registered",
         "source_id": name,
-        "url": url,
+        "url": source.url,
         "capabilities": capabilities,
         "registered_at": source.registered_at,
     }

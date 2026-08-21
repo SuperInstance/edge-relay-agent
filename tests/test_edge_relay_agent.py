@@ -108,6 +108,29 @@ class TestResearchRelay(unittest.TestCase):
         self.assertEqual(src.source_id, "oracle1")
         self.assertIn("oracle1", r.cloud_sources)
 
+    def test_register_cloud_source_with_url(self):
+        r = ResearchRelay()
+        src = r.register_cloud_source(
+            "oracle1", ["architecture", "specs"],
+            url="https://api.oracle1.example.com/v1",
+        )
+        self.assertEqual(src.url, "https://api.oracle1.example.com/v1")
+        self.assertEqual(r.cloud_sources["oracle1"].url, src.url)
+
+    def test_cloud_source_url_round_trip(self):
+        r = ResearchRelay()
+        r.register_cloud_source(
+            "oracle1", ["architecture", "specs"],
+            url="https://api.oracle1.example.com/v1",
+        )
+        d = r.to_dict()
+        self.assertEqual(
+            d["cloud_sources"]["oracle1"]["url"],
+            "https://api.oracle1.example.com/v1",
+        )
+        r2 = ResearchRelay.from_dict(d)
+        self.assertEqual(r2.cloud_sources["oracle1"].url, "https://api.oracle1.example.com/v1")
+
     def test_register_edge_node(self):
         r = ResearchRelay()
         node = r.register_edge_node("jetson1", ["cuda", "sensors"], {"vram": 8192})
@@ -629,6 +652,36 @@ class TestCLI(unittest.TestCase):
             state = _load_state(tmpdir)
             self.assertIsNotNone(state)
             self.assertEqual(state["version"], "1.0.0")
+
+    def test_register_cloud_persists_url_round_trip(self):
+        from cli import cmd_onboard, cmd_register_cloud, _load_state
+        with tempfile.TemporaryDirectory() as tmpdir:
+            onboard_args = type("Args", (), {
+                "state_dir": tmpdir,
+                "agent_id": "test-agent",
+                "port": 9999,
+                "bandwidth": 2048,
+                "extra_capabilities": "",
+                "force": False,
+            })()
+            self.assertEqual(cmd_onboard(onboard_args), 0)
+
+            url = "https://api.oracle1.example.com/v1"
+            register_args = type("Args", (), {
+                "state_dir": tmpdir,
+                "name": "oracle1",
+                "url": url,
+                "capabilities": "architecture,specs",
+            })()
+            self.assertEqual(cmd_register_cloud(register_args), 0)
+
+            state = _load_state(tmpdir)
+            persisted = state["relay"]["cloud_sources"]["oracle1"]
+            self.assertEqual(persisted["url"], url)
+
+            # A fresh ResearchRelay load sees the URL too.
+            r2 = ResearchRelay.from_dict(state["relay"])
+            self.assertEqual(r2.cloud_sources["oracle1"].url, url)
 
     def test_status_no_state(self):
         from cli import cmd_status
