@@ -101,7 +101,7 @@ Edge Relay Agent — standalone research relay for cloud-edge communication
 |------------|--------------|--------|
 | `onboard` | First-time setup; writes `state.json` (agent id, capabilities, port, bandwidth). | ✅ |
 | `status` | Prints agent status from saved state (sources, nodes, routed count, discovery summary). | ✅ |
-| `register-cloud` | Register a cloud source by name + capabilities. | ⚠️ see note |
+| `register-cloud` | Register a cloud source by name, URL, and capabilities. | ✅ |
 | `register-edge` | Register an edge node with capabilities and `key=value` constraints. | ✅ |
 | `route` | Route a message between a `--from` source and `--to` target; prints the routing plan. | ✅ |
 | `discover` | Show the discovery registry (or `--health` / `--capabilities` views). | ⚠️ in-memory only |
@@ -134,8 +134,8 @@ The central module. Defines the data model and the routing/compression logic.
 - `CloudEdgeAsymmetry` — encodes the design thesis that cloud and edge cannot
   fully approximate each other; logs `divergence`s between cloud assumptions
   and edge reality (severity-gated into `assumption_failures`).
-- Data classes: `CloudSource`, `EdgeNode`, `ResearchQuery`, `EdgeFinding`,
-  `RelayMessage` — each with `to_dict`/`from_dict`.
+- Data classes: `CloudSource` (with `url`), `EdgeNode`, `ResearchQuery`,
+  `EdgeFinding`, `RelayMessage` — each with `to_dict`/`from_dict`.
 - `ResearchRelay` — the engine: registers sources/nodes, submits queries and
   findings, `compress_for_edge()` (strips `_`-prefixed and metadata fields,
   caps lists, truncates to a byte budget), `expand_from_edge()` (enriches
@@ -206,8 +206,9 @@ command, and pretty-prints JSON results. Subcommands are wired in
 **Genuinely complete and tested (✅):** compression & truncation, event
 batching/dedup, priority translation + escalation, context versioning &
 conflict detection, bandwidth allocation/queue/preempt, the priority queue,
-service-registry indices, heartbeat state derivation, and full
-`to_dict`/`from_dict` round-trips for every model.
+service-registry indices, heartbeat state derivation, cloud-source URL
+registration and persistence, and full `to_dict`/`from_dict` round-trips for
+every model.
 
 **Working but with real limitations (⚠️):**
 
@@ -216,10 +217,6 @@ service-registry indices, heartbeat state derivation, and full
   loop printing a heartbeat summary every 10 s. The relay engine itself is
   in-process — `route_message()` produces a routing *plan* (route + actions)
   rather than performing network delivery.
-- **`register-cloud` does not persist `url`.** The `url` positional argument is
-  required and echoed in the command's JSON output, but `CloudSource` has no
-  URL field, so the URL is absent from `state.json`. Use `--name` as the stable
-  identifier.
 - **`discovery` is not networked** (see module note above) — manual peer
   registration only.
 - **`ContextTender.sync_diff` returns full re-syncs** across version gaps
